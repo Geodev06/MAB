@@ -1,13 +1,20 @@
 // routes/studentRoutes.js
 const express = require('express');
-const { recordFeedbackHandler, recommendModalityHandler } = require('../controllers/studentController');
+const { 
+    recordFeedbackHandler, 
+    recommendModalityHandler, 
+    getStudentStatsHandler 
+} = require('../controllers/studentController');
 
 const router = express.Router();
 
-// Record feedback route (POST)
+// Record feedback (POST)
 router.post('/feedback', recordFeedbackHandler);
 
-// Recommend modality route (POST)
+// Recommend modality (POST)
 router.post('/recommend', recommendModalityHandler);
+
+// Get student stats (POST)
+router.post('/stats', getStudentStatsHandler);
 
 module.exports = router;

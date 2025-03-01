@@ -1,5 +1,4 @@
-// controllers/studentController.js
-const { recordFeedback, recommendModalityMAB } = require('../models/studentModel');
+const { getStudent, getAverageScore, MODALITIES } = require('../models/studentModel');
 
 const recordFeedbackHandler = (req, res) => {
     const { studentId, modality, score } = req.body;
@@ -27,7 +26,35 @@ const recommendModalityHandler = (req, res) => {
     res.json({ studentId, recommendedModality });
 };
 
+const getStudentStatsHandler = (req, res) => {
+    const { studentId } = req.body;
+
+    if (!studentId) {
+        return res.status(400).json({ error: 'studentId is required' });
+    }
+
+    const student = getStudent(studentId);
+
+    const stats = {
+        studentId,
+        modalities: {},
+        totalSubmissions: 0
+    };
+
+    MODALITIES.forEach(modality => {
+        const scores = student.scores[modality] || [];
+        stats.modalities[modality] = {
+            averageScore: getAverageScore(scores),
+            submissions: scores.length
+        };
+        stats.totalSubmissions += scores.length;
+    });
+
+    res.json(stats);
+};
+
 module.exports = {
     recordFeedbackHandler,
-    recommendModalityHandler
+    recommendModalityHandler,
+    getStudentStatsHandler
 };
