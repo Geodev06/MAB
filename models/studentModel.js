@@ -1,37 +1,35 @@
 const fs = require('fs');
-const path = require('path');
-
-const DATA_FILE = path.join(__dirname, '..', 'data', 'students.json');
 
 const MODALITIES = ['Visual', 'Auditory', 'Kinesthetic', 'Reading & Writing'];
 const EPSILON = 0.1; // 10% exploration rate
 
-// In-memory cache (loaded from file at startup)
-let students = loadStudents();
+const STUDENT_FILE = './data/students.json';
 
-// Load students from JSON file
-function loadStudents() {
+let students = {};
+
+// Load students data from file (with fallback if file is empty)
+const loadStudents = () => {
     try {
-        if (fs.existsSync(DATA_FILE)) {
-            const data = fs.readFileSync(DATA_FILE);
-            return JSON.parse(data);
+        if (fs.existsSync(STUDENT_FILE)) {
+            const data = fs.readFileSync(STUDENT_FILE, 'utf8');
+            students = data ? JSON.parse(data) : {};
+        } else {
+            students = {};
         }
     } catch (err) {
         console.error('Failed to load student data:', err);
+        students = {};
     }
-    return {}; // Return empty if file does not exist or fails
-}
+};
 
-// Save students to JSON file
-function saveStudents() {
-    try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(students, null, 2));
-    } catch (err) {
-        console.error('Failed to save student data:', err);
-    }
-}
+// Save students data to file
+const saveStudents = () => {
+    fs.writeFileSync(STUDENT_FILE, JSON.stringify(students, null, 2), 'utf8');
+};
 
-// Get or initialize a student
+// Initialize students on start
+loadStudents();
+
 const getStudent = (studentId) => {
     if (!students[studentId]) {
         students[studentId] = {
@@ -40,40 +38,36 @@ const getStudent = (studentId) => {
                 return acc;
             }, {})
         };
+        saveStudents();
     }
     return students[studentId];
 };
 
-// Record feedback and save to file
+// Record feedback
 const recordFeedback = (studentId, modality, score) => {
     const student = getStudent(studentId);
 
     if (!MODALITIES.includes(modality)) {
         throw new Error(`Invalid modality: ${modality}`);
     }
-
     student.scores[modality].push(score);
-
-    // Persist data after updating
     saveStudents();
 };
 
-// Calculate average score for a modality
+// Calculate average score
 const getAverageScore = (scores) => {
     if (scores.length === 0) return 0;
     return scores.reduce((a, b) => a + b, 0) / scores.length;
 };
 
-// Recommend a modality using ε-greedy MAB
+// MAB Recommendation
 const recommendModalityMAB = (studentId) => {
     const student = getStudent(studentId);
 
-    // Exploration (choose random modality with probability ε)
     if (Math.random() < EPSILON) {
         return MODALITIES[Math.floor(Math.random() * MODALITIES.length)];
     }
 
-    // Exploitation (choose the best modality based on average score)
     let bestModality = null;
     let bestAverageScore = -1;
 
@@ -85,17 +79,13 @@ const recommendModalityMAB = (studentId) => {
         }
     });
 
-    // If all modalities have no scores, pick one randomly
-    if (!bestModality) {
-        bestModality = MODALITIES[Math.floor(Math.random() * MODALITIES.length)];
-    }
-
-    return bestModality;
+    return bestModality || MODALITIES[Math.floor(Math.random() * MODALITIES.length)];
 };
 
 module.exports = {
     getStudent,
     recordFeedback,
     recommendModalityMAB,
+    getAverageScore,  // <-- Make sure this is exported
     MODALITIES
 };
