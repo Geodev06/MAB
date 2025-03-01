@@ -1,4 +1,4 @@
-const { getStudent, getAverageScore, MODALITIES } = require('../models/studentModel');
+const { getStudent, recordFeedback, recommendModalityMAB, getAverageScore, MODALITIES } = require('../models/studentModel');
 
 const recordFeedbackHandler = (req, res) => {
     const { studentId, modality, score } = req.body;
