@@ -1,20 +1,22 @@
-// routes/studentRoutes.js
+// app.js or server.js (main file)
 const express = require('express');
-const { 
-    recordFeedbackHandler, 
-    recommendModalityHandler, 
-    getStudentStatsHandler 
-} = require('../controllers/studentController');
+const cors = require('cors'); // Importing CORS
 
-const router = express.Router();
+const studentRoutes = require('./routes/studentRoutes'); // Import your routes
 
-// Record feedback (POST)
-router.post('/feedback', recordFeedbackHandler);
+const app = express();
 
-// Recommend modality (POST)
-router.post('/recommend', recommendModalityHandler);
+// Enable CORS for all origins globally
+app.use(cors()); // This will allow all origins for all routes
 
-// Get student stats (POST)
-router.post('/stats', getStudentStatsHandler);
+// Middleware to parse JSON bodies
+app.use(express.json());
 
-module.exports = router;
+// Use the student routes for relevant endpoints
+app.use('/api/students', studentRoutes);
+
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
