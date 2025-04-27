@@ -1,24 +1,20 @@
+// routes/studentRoutes.js
 const express = require('express');
-const cors = require('cors'); // Importing the CORS middleware
-const studentRoutes = require('./routes/studentRoutes'); // Import your routes
+const { 
+    recordFeedbackHandler, 
+    recommendModalityHandler, 
+    getStudentStatsHandler 
+} = require('../controllers/studentController');
 
-const app = express();
+const router = express.Router();
 
-// Enable CORS for all routes and allow requests from http://127.0.0.1:8000
-app.use(cors({
-  origin: '*', // Allow only this specific origin
-  methods: 'GET,POST',  // You can also restrict to certain HTTP methods
-  allowedHeaders: 'Content-Type, Authorization', // Allow headers that are necessary
-}));
+// Record feedback (POST)
+router.post('/feedback', recordFeedbackHandler);
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+// Recommend modality (POST)
+router.post('/recommend', recommendModalityHandler);
 
-// Use the student routes for relevant endpoints
-app.use('/students', studentRoutes);
+// Get student stats (POST)
+router.post('/stats', getStudentStatsHandler);
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+module.exports = router;
